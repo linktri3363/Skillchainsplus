@@ -1,0 +1,81 @@
+# SkillchainsPlus Addon .gitignore
+
+# Character-specific configuration files
+data/*.lua
+!data/auto.lua
+
+# Settings and character data
+settings.xml
+*_settings.xml
+
+# Windower-generated files
+*.cache
+*.log
+*.tmp
+
+# Character names and personal data
+**/[Cc]har_*.lua
+**/[Pp]layer_*.lua
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Temporary files
+*.temp
+*.temporary
+
+# FFXI specific
+# Character-specific Gearswap files (if any)
+gearswap/data/*.lua
+!gearswap/data/example*.lua
+
+# Exclude personal character files but keep templates
+**/linktri.lua
+**/cypan.lua
+# Add your character names here:
+# **/YourCharacterName.lua
+
+# Keep important files
+!README.md
+!LICENSE
+!*.md
+!auto.lua
+!Linktri.lua
+!nukes.lua
+!SkillchainsPlus.lua
+!skills.lua
+
+# Version control
+.git/
+.gitattributes
+
+# Compressed files
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# Test files
+test/
+tests/
+*.test.lua
