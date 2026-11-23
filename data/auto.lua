@@ -33,13 +33,13 @@ function jobvar()
 -- MONK
 
     if info.job == 'MNK' then
-        defaultws = {'Tornado Kick'}
+        defaultws = {'Victory Smite'}
         tpws = {'Howling Fist'}
-        spamws = {}
-        cleavews = {}
+        spamws = {'Victory Smite'}
+        cleavews = {'Spinning Attack'}
         starterws = {'Tornado Kick'}
-        preferws = {'Tornado Kick'}
-        amws = 'Ascetic\'s Fury'
+        preferws = {'Howling Fist'}
+        amws = 'Shijin Spiral'
     end
 
 
@@ -85,13 +85,13 @@ function jobvar()
 -- THIEF - FIXED: Standardized amws with Linktri.lua
 
     if info.job == 'THF' then
-        defaultws = {'Evisceration'}
+        defaultws = {'Ruthless Stroke'}
         tpws = {'Rudra\'s Storm'}
-        spamws = {'Rudra\'s Storm','Savage Blade'}
+        spamws = {'Ruthless Stroke','Savage Blade'}
         cleavews = {'Aeolian Edge'}
         starterws = {'Evisceration'}
-        preferws = {'Rudra\'s Storm'}
-        amws = 'Exenterator'
+        preferws = {'Ruthless Stroke'}
+        amws = 'Ruthless Stroke'
     end
 
 
@@ -139,11 +139,11 @@ function jobvar()
     if info.job == 'SAM' then
         defaultws = {'Tachi: Fudo'}
         tpws = {'Tachi: Fudo'}
-        spamws = {'Tachi: Fudo'}
+        spamws = {'Tachi: Jinpu'}
         cleavews = {}
         starterws = {'Tachi: Shoha'}
         preferws = {'Tachi: Shoha'}
-        amws = 'Tachi: Rana'
+        amws = 'Tachi: Shoha'
     end
 
 
@@ -184,7 +184,8 @@ end
         cleavews = {}
         starterws = {'Upheaval','Savage Blade','Full Break'}
         preferws = {'Upheaval','Savage Blade','Full Break'}
-        amws = 'King\'s Justice'
+		preferws = {'Upheaval','Savage Blade','Full Break'}
+        amws = 'Upheaval'
     end
 
 

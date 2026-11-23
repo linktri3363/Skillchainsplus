@@ -1316,7 +1316,7 @@ windower.register_event('gain buff', function(id)
         if am == 1 then
             local buff_name = res.buffs[id].name
             if buff_name == "Aftermath: Lv.3" then
-                windower.send_command('input /p Aftermath Up')
+                windower.send_command('input /echo Aftermath Up')
             end
         end
 
@@ -1342,7 +1342,7 @@ windower.register_event('lose buff', function(id)
         if am == 1 then
             local buff_name = res.buffs[id].name
             if buff_name == "Aftermath: Lv.3" then
-                windower.send_command('input /p Aftermath Down')
+                windower.send_command('input /echo Aftermath Down')
             end
         end
 
