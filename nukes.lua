@@ -749,7 +749,7 @@ function nukes.darkness()
 
 end
 
-function nukes.get_nuke(cmd)
+local function pick_nuke(cmd)
 	if cmd == 'thundermb' then
 		return nukes.thunder()
 	elseif cmd == 'blizzardmb' then
@@ -783,6 +783,30 @@ function nukes.get_nuke(cmd)
 	else
 		return nil
 	end
+end
+
+-- Element toggles (//sc fire, //sc thunder, ...) apply to every burst
+local function element_disabled(element)
+  if element == 0 then return Fire == 1
+  elseif element == 1 then return Ice == 1
+  elseif element == 2 then return Wind == 1
+  elseif element == 3 then return Earth == 1
+  elseif element == 4 then return Thunder == 1
+  elseif element == 5 then return Water == 1
+  elseif element == 6 then return Lightness == 1
+  elseif element == 7 then return Darkness == 1
+  end
+  return false
+end
+
+function nukes.get_nuke(cmd)
+  local name = pick_nuke(cmd)
+  if not name then return nil end
+  local spell = res and res.spells:with('en', name)
+  if spell and element_disabled(spell.element) then
+    return nil
+  end
+  return name
 end
 
 function nukes.blm()
@@ -819,37 +843,7 @@ end
 
 windower.register_event('addon command', function(cmd, ...)
 
-  local spell = nil
-
-  if cmd == 'thundermb' then
-    spell = nukes.thunder()
-  elseif cmd == 'blizzardmb' then
-    spell = nukes.blizzard()
-  elseif cmd == 'firemb' then
-    spell = nukes.fire()
-  elseif cmd == 'aeromb' then
-    spell = nukes.aero()
-  elseif cmd == 'watermb' then
-    spell = nukes.water()
-  elseif cmd == 'stonemb' then
-    spell = nukes.stone()
-  elseif cmd == 'gravmb' then
-    spell = nukes.grav()
-  elseif cmd == 'distomb' then
-    spell = nukes.disto()
-  elseif cmd == 'fragmb' then
-    spell = nukes.frag()
-  elseif cmd == 'fusionmb' then
-    spell = nukes.fusion()
-  elseif cmd == 'lightmb' then
-    spell = nukes.light()
-  elseif cmd == 'darknessmb' then
-    spell = nukes.darkness()
-  elseif cmd == 'darkmb' then
-    spell = nukes.dark()
-  elseif cmd == 'holymb' then
-    spell = nukes.holy()
-  end
+  local spell = nukes.get_nuke(cmd)
 
   if cmd == 'earth' then
       ele.earth()

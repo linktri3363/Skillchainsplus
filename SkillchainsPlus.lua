@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 _addon.author = 'Ivaar, Cypan, Linktri'
 _addon.command = 'sc'
 _addon.name = 'SkillchainsPlus'
-_addon.version = '2.3'
+_addon.version = '2.4'
 
 require('luau')
 require('pack')
@@ -52,7 +52,7 @@ local wstrigger = 0
 local ws_cache = {} -- Weapon skill caching
 
 _static = S{'WAR','MNK','WHM','BLM','RDM','THF','PLD','DRK','BST','BRD','RNG','SAM','NIN','DRG','SMN','BLU','COR','PUP','DNC','SCH','GEO','RUN'}
-rangedws = S{'Flaming Arrow','Piercing Arrow','Dulling Arrow','Sidewinder','Blast Arrow','Arching Arrow','Empyreal Arrow','Refulgent Arrow','Apex Arrow','Namas Arrow','Jishnu\'s Radiance','Hot Shot','Split Shot','Sniper Shot','Slug Shot','Blast Shot','Heavy Shot','Detonator','Numbing Shot','Last Stand','Coronach	Wildfire','Trueflight','Leaden Salute'}
+rangedws = S{'Flaming Arrow','Piercing Arrow','Dulling Arrow','Sidewinder','Blast Arrow','Arching Arrow','Empyreal Arrow','Refulgent Arrow','Apex Arrow','Namas Arrow','Jishnu\'s Radiance','Hot Shot','Split Shot','Sniper Shot','Slug Shot','Blast Shot','Heavy Shot','Detonator','Numbing Shot','Last Stand','Coronach','Wildfire','Trueflight','Leaden Salute'}
 ignoretp = S{''}
 
 -- FIXED: Added helper functions
@@ -129,6 +129,7 @@ function varclean()
     ultimate = 0
     w_casting = 0
     w_readies = 0
+    cleave = 0
 	chaff = 0          -- Chain Affinity mode
 	caffdelay = 0      -- Chain Affinity delay tracking
 	cafftime = 0       -- Chain Affinity timing
@@ -1013,34 +1014,13 @@ end
             wsdist = 3.5
         end
 
-        if innin == 1 and status == 1 then
-            if (mobdist < wsdist) then
-                if player.main_job == 'NIN' then
-                    if faw == 0 then
-                        behind()
-                    end
-                else
-                    behind()
-                end
-            else
-                windower.send_command('setkey numpad4 up')
-                windower.send_command('setkey numpad6 up')
-            end
+        -- Facing control: one branch per tick so modes don't cancel each other
+        if innin == 1 and status == 1 and mobdist < wsdist and not (player.main_job == 'NIN' and faw == 1) then
+            behind()
+        elseif yonin == 1 and innin == 0 and status == 1 and mobdist < wsdist then
+            front()
         else
-            windower.send_command('setkey numpad4 up')
-            windower.send_command('setkey numpad6 up')
-        end
-
-        if yonin == 1 and status == 1 then
-            if (mobdist < wsdist) then
-                front()
-            else
-                windower.send_command('setkey numpad4 up')
-                windower.send_command('setkey numpad6 up')
-            end
-        else
-            windower.send_command('setkey numpad4 up')
-            windower.send_command('setkey numpad6 up')
+            set_turn(nil)
         end
 
         local targ = windower.ffxi.get_mob_by_target('t', 'bt')
@@ -1062,7 +1042,7 @@ if chaff == 1 and info.job == 'BLU' and chainaffws and #chainaffws > 0 then
     if chain_affinity_available() and caffdelay == 0 and tp > 999 then
         -- Use smart Chain Affinity spell selection
         if not perform_smart_chain_affinity_spell(reson) then
-            if autosc ~= nil then
+            if autosc ~= nil and not is_chain_affinity_spell(autosc) then
                 perform_ws(autosc)
             end
         end
@@ -1098,7 +1078,7 @@ if chaff == 1 and info.job == 'BLU' and chainaffws and #chainaffws > 0 then
     if chain_affinity_available() and caffdelay == 0 and tp > 999 then
         -- Use smart Chain Affinity spell selection
         if not perform_smart_chain_affinity_spell(reson) then
-            if autosc ~= nil then
+            if autosc ~= nil and not is_chain_affinity_spell(autosc) then
                 perform_ws(autosc)
             end
         end
@@ -1250,7 +1230,7 @@ end
                         if aoews ~= nil then
                             perform_ws(aoews)
                         end
-                    elseif tp > 999 and starter == 0 or started == 1 then
+                    elseif tp > 999 and (starter == 0 or started == 1) then
                         if zergws ~= nil then
             				        perform_ws(zergws)
                             wstrigger = 1
@@ -1299,6 +1279,30 @@ windower.register_event("incoming text", function(original, modified, mode)
     return modified, mode
 end)
 
+function buddy_broadcast(msg)
+    windower.add_to_chat(207, '%s: %s':format(_addon.name, msg))
+    local me = windower.ffxi.get_player()
+    if me then
+        windower.send_ipc_message('scplus|' .. msg .. '|' .. me.name)
+    end
+end
+
+local function buddy_status(msg, sender)
+    if msg == 'Aftermath Down' or msg == 'WS Disabled' then
+        ignore_player(sender)
+    elseif msg == 'Aftermath Up' or msg == 'WS Enabled' then
+        watch_player(sender)
+    end
+end
+
+windower.register_event('ipc message', function(message)
+    if buddy ~= 1 then return end
+    local msg, sender = message:match('^scplus|(.-)|(.+)$')
+    if msg then
+        buddy_status(msg, sender)
+    end
+end)
+
 windower.register_event('chat message', function(message,sender,mode,gm)
     if buddy == 1 then
         if message:contains('Aftermath Down') or message:contains('WS Disabled') then
@@ -1316,7 +1320,7 @@ windower.register_event('gain buff', function(id)
         if am == 1 then
             local buff_name = res.buffs[id].name
             if buff_name == "Aftermath: Lv.3" then
-                windower.send_command('input /echo Aftermath Up')
+                buddy_broadcast('Aftermath Up')
             end
         end
 
@@ -1329,7 +1333,7 @@ windower.register_event('gain buff', function(id)
         id == 19 or
         id == 28 or
         id == 156 then
-            windower.send_command('input /echo WS Disabled')
+            buddy_broadcast('WS Disabled')
         end
     end
 end)
@@ -1342,13 +1346,21 @@ windower.register_event('lose buff', function(id)
         if am == 1 then
             local buff_name = res.buffs[id].name
             if buff_name == "Aftermath: Lv.3" then
-                windower.send_command('input /echo Aftermath Down')
+                buddy_broadcast('Aftermath Down')
             end
         end
 
-        if L{2,7,10,14,16,17,19,28,156}:contains(id) then
-            if not buffs:contains(L{2,7,10,14,16,17,19,28,156}) then
-                windower.send_command('input /echo WS Enabled')
+        local ws_block = S{2,7,10,14,16,17,19,28,156}
+        if ws_block:contains(id) then
+            local still_blocked = false
+            for _, b in ipairs(player.buffs) do
+                if b ~= id and ws_block:contains(b) then
+                    still_blocked = true
+                    break
+                end
+            end
+            if not still_blocked then
+                buddy_broadcast('WS Enabled')
             end
         end
     end
@@ -1588,113 +1600,57 @@ end
 function watch_player(player_name)
     if ignoretp:contains(player_name) and player_name then
         ignoretp:remove(player_name)
-        windower.add_to_chat(207, '%s: Removed %s to ignore list':format(_addon.name, player_name))
+        windower.add_to_chat(207, '%s: Removed %s from ignore list':format(_addon.name, player_name))
     end
 end
 
+local turn_key = 'init' -- forces one release on first call
+
+function set_turn(dir)
+    if dir == turn_key then return end
+    if dir == 'Right' then
+        windower.send_command('setkey numpad4 up; setkey numpad6 down')
+    elseif dir == 'Left' then
+        windower.send_command('setkey numpad6 up; setkey numpad4 down')
+    else
+        windower.send_command('setkey numpad4 up; setkey numpad6 up')
+    end
+    turn_key = dir
+end
+
+local function facing_diff()
+    local me = windower.ffxi.get_mob_by_target('me')
+    local mob = windower.ffxi.get_mob_by_target('st') or windower.ffxi.get_mob_by_target('t')
+    if not me or not mob or mob.hpp >= 100 then return nil end
+    local function norm(d)
+        if d < 0 then return -d end
+        return 2*math.pi - d
+    end
+    return norm(me.facing) - norm(mob.facing)
+end
+
 function front()
-  local pi = math.pi
-  local atan = math.atan
-
-  local me = windower.ffxi.get_mob_by_target('me')
-  local mob = windower.ffxi.get_mob_by_target('st') or windower.ffxi.get_mob_by_target('t')
-
-  if mob ~= nil then
-      if mob.hpp < 100 then
-          local mydir = me.facing
-          if mydir < 0 then
-              mydir = -mydir
-          else
-              mydir = 2*pi-mydir
-          end
-
-          local mobdir = mob.facing
-          if mobdir < 0 then
-              mobdir = -mobdir
-          else
-              mobdir = 2*pi-mobdir
-          end
-
-          if mydir > mobdir then
-            swing = left
-          elseif mydir < mobdir then
-            swing = right
-          end
-
-          ddir = mydir - mobdir
-
-          if ddir < pi-0.3 then
-            swing = "Right"
-          elseif ddir > pi+0.3 then
-            swing = "Left"
-          else
-            swing = "Steady"
-          end
-
-          if swing == "Right" then
-            windower.send_command('setkey numpad6 down')
-            windower.send_command('setkey numpad4 up')
-          elseif swing == "Left" then
-            windower.send_command('setkey numpad4 down')
-            windower.send_command('setkey numpad6 up')
-          elseif swing == "Steady" then
-            windower.send_command('setkey numpad4 up')
-            windower.send_command('setkey numpad6 up')
-          end
-      end
-  end
+    local ddir = facing_diff()
+    if not ddir then return set_turn(nil) end
+    if ddir < math.pi - 0.3 then
+        set_turn('Right')
+    elseif ddir > math.pi + 0.3 then
+        set_turn('Left')
+    else
+        set_turn(nil)
+    end
 end
 
 function behind()
-  local pi = math.pi
-  local atan = math.atan
-
-  local me = windower.ffxi.get_mob_by_target('me')
-  local mob = windower.ffxi.get_mob_by_target('st') or windower.ffxi.get_mob_by_target('t')
-
-  if mob ~= nil then
-      if mob.hpp < 100 then
-          local mydir = me.facing
-          if mydir < 0 then
-              mydir = -mydir
-          else
-              mydir = 2*pi-mydir
-          end
-
-          local mobdir = mob.facing
-          if mobdir < 0 then
-              mobdir = -mobdir
-          else
-              mobdir = 2*pi-mobdir
-          end
-
-          if mydir > mobdir then
-            swing = left
-          elseif mydir < mobdir then
-            swing = right
-          end
-
-          ddir = mydir - mobdir
-          if ddir < -0.3 then
-            swing = "Right"
-          elseif ddir > 0.3 then
-            swing = "Left"
-          else
-            swing = "Steady"
-          end
-
-          if swing == "Right" then
-            windower.send_command('setkey numpad6 down')
-            windower.send_command('setkey numpad4 up')
-          elseif swing == "Left" then
-            windower.send_command('setkey numpad4 down')
-            windower.send_command('setkey numpad6 up')
-          elseif swing == "Steady" then
-            windower.send_command('setkey numpad4 up')
-            windower.send_command('setkey numpad6 up')
-          end
-      end
-  end
+    local ddir = facing_diff()
+    if not ddir then return set_turn(nil) end
+    if ddir < -0.3 then
+        set_turn('Right')
+    elseif ddir > 0.3 then
+        set_turn('Left')
+    else
+        set_turn(nil)
+    end
 end
 -- ADD THE DEBUG FUNCTION HERE
 function debug_chaff_status()
@@ -1794,85 +1750,46 @@ function get_available_chain_affinity_spells()
     return available, unavailable
 end
 
--- Enhanced smart spell selection that only considers available spells
-function get_smart_chain_affinity_spell(reson)
-    local available_spells, unavailable_spells = get_available_chain_affinity_spells()
-    
-    if #available_spells == 0 then
-        if #unavailable_spells > 0 then
-            windower.add_to_chat(207, 'SkillchainsPlus: No Chain Affinity spells are currently set!')
-        end
-        return nil
-    end
-    
-    if not reson then
-        return available_spells[1]
-    end
-    
-    -- Get available skillchain properties
-    local available_props = {}
-    local t = {}
-    if settings.Show.weapon[info.job] then
-        t = add_skills(t, windower.ffxi.get_abilities().weapon_skills, reson.active, 'weapon_skills', info.aeonic and aeonic_am(reson.step))
-    end
-    
-    for i = 1, #t do
-        local prop_line = t[i]
-        if prop_line then
-            local property = prop_line:match("Lv%.%d+%s+([%a%s]+)")
-            if property then
-                property = property:gsub("^%s*(.-)%s*$", "%1")
-                available_props[property] = true
-            end
-        end
-    end
-    
-    -- Score each available spell
-    local best_spell = nil
-    local best_score = 0
-    
-    for i = 1, #available_spells do
-        local spell_name = available_spells[i]
-        local spell_props = blue_magic_properties[spell_name]
-        
-        if spell_props then
-            local score = 0
-            
-            for j = 1, #spell_props do
-                local prop = spell_props[j]
-                if available_props[prop] then
-                    if prop == 'Light' or prop == 'Darkness' then
-                        score = score + 4
-                    elseif prop == 'Gravitation' or prop == 'Fragmentation' or prop == 'Distortion' or prop == 'Fusion' then
-                        score = score + 2
-                    else
-                        score = score + 1
-                    end
-                end
-            end
-            
-            if score > best_score then
-                best_score = score
-                best_spell = spell_name
-            end
-        end
-    end
-    
-    return best_spell or available_spells[1]
+-- Skillchain properties of a Blue Magic spell (skills.lua first, local table as fallback)
+local function blu_spell_props(spell_name)
+    local spell = res.spells:with('en', spell_name)
+    local entry = spell and skills.spells[spell.id]
+    return entry and entry.skillchain or blue_magic_properties[spell_name]
 end
 
--- Enhanced Chain Affinity spell execution
+-- Picks the set Chain Affinity spell that closes the highest-level skillchain
+-- on the current resonance. Returns nil if none of them chain.
+function get_smart_chain_affinity_spell(reson)
+    local available_spells = get_available_chain_affinity_spells()
+    if #available_spells == 0 then
+        return nil
+    end
+    if not reson or not reson.active then
+        return available_spells[1]
+    end
+
+    local best_spell, best_lvl = nil, 0
+    for i = 1, #available_spells do
+        local props = blu_spell_props(available_spells[i])
+        if props then
+            local lvl, prop = check_props(reson.active, props)
+            if lvl and lvl > best_lvl
+                and (light == 0 or lightchains:contains(prop))
+                and (dark == 0 or darkchains:contains(prop)) then
+                best_lvl, best_spell = lvl, available_spells[i]
+            end
+        end
+    end
+    return best_spell
+end
+
 function perform_smart_chain_affinity_spell(reson)
     local spell_name = get_smart_chain_affinity_spell(reson)
-    
-    if spell_name then
-        windower.add_to_chat(207, 'SkillchainsPlus: Smart Chain Affinity selected: ' .. spell_name)
-        perform_chain_affinity_spell(spell_name)
-        return true
-    else
-        windower.add_to_chat(207, 'SkillchainsPlus: No Chain Affinity spells available!')
+    if not spell_name then
         return false
     end
+    perform_chain_affinity_spell(spell_name)
+    return true
 end
 -- Enhanced debug function with availability analysis
 function debug_chaff_status_enhanced()
@@ -2338,14 +2255,15 @@ windower.register_event('addon command', function(cmd, ...)
             windower.send_command('input /echo Dark Skillchain Mode')
         end
     elseif cmd == 'reload' then
-        windower.send_command('lua reload skillchains')
+        windower.send_command('lua reload ' .. _addon.name)
     elseif cmd == 'help' or cmd == '?' then
         windower.add_to_chat(207, '%s: valid commands [ status | auto | mb | am | buddy | prefer | endless | melee | ranged | autonuke | spam | cleave | starter | ignore | open | close | save | move | burst | weapon | spell | pet | props | step | timer | color | aeonic | reload | chaff ]':format(_addon.name))
     elseif cmd == 'autoskill' then
-        if autosc ~= nil then
-            windower.send_command('input /ws "' .. autosc .. '" <t>')
+        local ws = autosc or openws
+        if ws ~= nil then
+            windower.send_command('input /ws "' .. ws .. '" <t>')
         else
-            windower.send_command('input /ws "' .. openws .. '" <t>')
+            windower.add_to_chat(207, '%s: No weaponskill available to use.':format(_addon.name))
         end
     elseif cmd == 'autoburst' then
         if automb ~= nil then
@@ -2453,7 +2371,10 @@ windower.register_event('job change', function(job, lvl)
     job = res.jobs:with('id', job).english_short
     if job ~= info.job then
         info.job = job
+        chainaffws = nil
+        petws = nil
         config.reload(settings)
+        check_sc()
     end
 end)
 
@@ -2474,11 +2395,17 @@ windower.register_event('load', function()
 end)
 
 windower.register_event('unload', function()
-    coroutine.close(check_weapon)
+    set_turn(nil)
+    if check_weapon then
+        coroutine.close(check_weapon)
+    end
 end)
 
 windower.register_event('logout', function()
-    coroutine.close(check_weapon)
+    set_turn(nil)
+    if check_weapon then
+        coroutine.close(check_weapon)
+    end
     check_weapon = nil
     info = {}
     resonating = {}

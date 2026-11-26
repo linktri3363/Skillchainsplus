@@ -74,6 +74,8 @@ Secondary automation commands that allow for augmenting the primary commands for
       //sc dark     -- will force closing dark based skillchains if available
       //sc whilecasting -- activates spam command to trigger during casting
       //sc whilereadies -- activates spam command to trigger during readying
+      //sc chaff    -- BLU: uses Chain Affinity + the set "chainaffws" spell
+                    -- that closes the highest-level skillchain
 
 Combination automation commands to provide easier access to common modes
 
@@ -85,3 +87,9 @@ In game macro support for activating automation triggers manually
 
       /console sc autoskill -- activates the weaponskill to close skillchain
       /console sc autoburst -- activates the nuke to magic burst skillchain
+
+Element toggles for autonuke (each toggles that element on/off for every burst)
+
+      //sc fire | ice | wind | earth | thunder | water | lightness | darkness
+
+Buddy mode shares Aftermath / WS-disabled status between your own characters on the same PC via Windower IPC.

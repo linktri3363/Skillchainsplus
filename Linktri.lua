@@ -185,7 +185,6 @@ end
         cleavews = {}
         starterws = {'Upheaval','Savage Blade','Full Break'}
         preferws = {'Upheaval','Savage Blade','Full Break'}
-		preferws = {'Upheaval','Savage Blade','Full Break'}
         amws = 'Upheaval'
     end
 
@@ -277,7 +276,6 @@ end
         cleavews = {'Cloudsplitter'}
         starterws = {'Decimation'}
         preferws = {'Primal Rend','Savage Blade'}
-		strictws = {'Savage Blade'}
         amws = 'Primal Rend'
         petws = {'Regal Scratch', 'Poison Nails', 'Chaotic Strike'}
     end
