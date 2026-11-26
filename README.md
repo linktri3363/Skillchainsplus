@@ -1,95 +1,156 @@
-# Requirements
+# SkillchainsPlus
 
-All files including the data folder, nukes, skills, and skillchainsplus are required to function correctly.
+**Skillchain display and automation for Windower 4.**
+Based on Ivaar's *SkillChains*, extended by Cypan, and maintained by Linktri @ Asura.
 
-Upon initial load - a new character.lua file will be generated to allow character specific weaponskill settings.
+SkillchainsPlus tracks skillchain properties on your target and shows the open window, the burst elements, and every weapon skill you have that can close the chain. You can also let it run skillchains, magic bursts and Chain Affinity for you.
 
+---
 
-# SkillChains - Original Addon
-### Active Battle Skillchain Display.
+## Installation
 
-Displays a text object containing skillchain elements resonating on current target, timer for skillchain window,
-along with a list of weapon skills that can skillchain based on the weapon you have currently equipped.
+1. Copy the whole folder to `Windower/addons/SkillchainsPlus/`. You need every file: `SkillchainsPlus.lua`, `display.lua`, `nukes.lua`, `skills.lua`, `images/`, and `data/`.
+2. `//lua load skillchainsplus`
+3. On first load, the addon creates `<YourCharacter>.lua` in the addon folder from `data/auto.lua`. Edit that file to set each job's weapon skills (see [Job configuration](#job-configuration)).
 
-    //sc color    -- colorize properties and elements
+---
 
-    //sc move     -- displays text box click and drag it to desired location.
+## The display
 
-    //sc save     -- save settings to current character.
+The display uses the same look as EnemyBar2: bold stroked text, no background box, and a coloured timer bar.
 
-    //sc save all -- save settings to all characters.
+```
+Step 2  →  Ruthless Stroke
+[■■■■■■■■■■■■■■■□□□□□]  Go!  5.2s
+Liquefaction   MB Fire
+» Ruthless Stroke         Lv.2 Fusion
+   Savage Blade           Lv.1 Scission
 
-The following commands toggle the display information and are saved on a per job basis.
+SC+  AUTO  BUDDY  MB
+```
 
-    //sc spell    -- sch immanence and blue magic spells.
+| Part | What it shows |
+|---|---|
+| **Header** | Current step and the action that made it |
+| **Timer bar** | Red **Wait** until the window opens, green **Go!** while you can close, blue **Burst** after a closing skillchain |
+| **Properties** | Active skillchain properties, plus magic-burst elements from step 2 on |
+| **Closers** | Every weapon skill, Blue Magic spell or pet skill that continues the chain, highest level first. **»** in gold marks the one automation will use |
+| **Mode line** | `SC+` followed by every automation mode that is on |
 
-    //sc pet      -- smn and bst pet skills.
+### Display commands
 
-    //sc weapon   -- weapon skills.
+| Command | Effect |
+|---|---|
+| `//sc move` | Toggles move mode. Drag the display and the mode line, then run `//sc move` again to save |
+| `//sc modes` | Shows or hides the mode line |
+| `//sc font <name>` | Font (default `Arial`) |
+| `//sc size <n>` | Font size (default `10`) |
+| `//sc width <n>` | Timer bar width (default `220`) |
+| `//sc burst` · `props` · `step` · `timer` | Toggles that part of the display (saved per job) |
+| `//sc weapon` · `spell` · `pet` | Toggles listing weapon skills, SCH/BLU spells, or SMN/BST pet skills (saved per job) |
+| `//sc aeonic` | Assumes other players' aeonic weapons are active |
+| `//sc save [all]` | Saves settings for this character, or for all characters |
 
-    //sc burst    -- magic burst elements.
+---
 
-    //sc props    -- skillchain properties currently active on target.
+## Automation
 
-    //sc timer    -- skillchain window timer.
+### Main modes
 
-    //sc step     -- current weaponskill step information.
+| Command | Effect |
+|---|---|
+| `//sc auto` | Auto skillchain: closes when it can, otherwise opens with `defaultws` (or `tpws` above 2000 TP) |
+| `//sc spam` | Uses `spamws` whenever you have 1000 TP |
+| `//sc cleave` | Spam mode using `cleavews` |
+| `//sc autonuke` | Casts a magic burst during the burst window |
+| `//sc status` | Lists active modes in chat |
+| `//sc reload` | Reloads the addon and resets all modes |
 
-More settings related to text object can be found within the settings.xml, generated on addon load
+### Modifiers
 
+| Command | Effect |
+|---|---|
+| `//sc buddy` | Waits for the engaged party member with the highest TP to weapon skill |
+| `//sc ignore <name>` / `watch <name>` | Leaves a party member out of buddy mode / puts them back in |
+| `//sc prefer` | Closes with `preferws` when it's an option |
+| `//sc strict` | Closes **only** with `preferws` |
+| `//sc open` | Only opens skillchains |
+| `//sc close` | Only closes skillchains |
+| `//sc endless` | Uses a Lv.1 or Lv.2 closer when available, so the chain keeps going |
+| `//sc ultimate` | Only closes when the result is a Lv.4 skillchain |
+| `//sc starter` | Opens each fight once with `starterws` |
+| `//sc melee` / `ranged` | Uses only melee / only ranged weapon skills |
+| `//sc light` / `dark` | Closes only light-based / dark-based skillchains |
+| `//sc am` | Keeps Aftermath Lv.3 up with `amws` |
+| `//sc mb` | Holds the close until the end of the window, to leave room for magic bursts |
+| `//sc chaff` | **BLU:** uses Chain Affinity with whichever `chainaffws` spell closes the highest-level skillchain |
+| `//sc ongo` | Only bursts Scission, Gravitation, Darkness and Umbra, with earth nukes |
+| `//sc innin` / `yonin` | Turns to stay behind / in front of the mob while in range |
+| `//sc whilecasting` / `whilereadies` | Spam mode that fires when the mob starts casting / readies a TP move |
 
-# SkillChains Plus - Cypan Modifications
-### Active Battle Skillchains Automation.
+### Combos
 
-Primary automation and utility commands to utilize the defined skillchain display elements for automating weaponskills and magic bursts.
+| Command | Same as |
+|---|---|
+| `//sc party` | `auto` + `buddy` |
+| `//sc partyam` | `auto` + `buddy` + `am` |
+| `//sc partymb` | `auto` + `buddy` + `mb` |
 
-      //sc spam     -- spams defined "spamws" at 1k tp
-      //sc auto     -- auto skillchaining using defined "defaultws" and
-                    -- "tpws" as openers when no skillchain is available
-      //sc autonuke -- auto magic bursts during skillchain burst window
-      //sc ignore   -- ignores party member when 'buddy' is activated
-                    -- define party member with //sc ignore <name>
-      //sc status   -- displays active automation commands
-      //sc reload   -- reloads addon and resets commands
+### Magic burst element toggles
 
-Secondary automation commands that allow for augmenting the primary commands for combinations to work with party members for a desired outcome.
+`//sc fire` · `ice` · `wind` · `earth` · `thunder` · `water` · `lightness` · `darkness`
 
-      //sc buddy    -- waits for the engaged party member w/ highest tp to
-                    -- weaponskill; use the 'ignore' command to omit members
-      //sc prefer   -- prioritizes "preferws" if a skillchain closing option
-      //sc strict   -- will only close skillchain if "preferws" is available
-      //sc open     -- will only open skillchains w/ "defaultws" and not close
-      //sc close    -- will only close skillchains and not open a skillchain
-      //sc endless  -- forces using a Lv.2 or Lv.1 skillchain if available
-      //sc ultimate -- will only close a skillchain if it's a Lv.4 skillchain
-      //sc starter  -- uses the defined "starterws" once per battle to open
-      //sc melee    -- forces only using melee weaponskills for skillchains
-      //sc ranged   -- forces only using ranged weaponskills for skillchains
-      //sc cleave   -- spam mode using defined "cleavews" instead of "spamws"
-      //sc am       -- will maintain aftermath 3 and prioritize if not active
-      //sc mb       -- will force waiting to skillchain until end of sc window
-      //sc innin    -- will force maintaining position behind mob if no sc
-      //sc yonin    -- will force maintaining position in front of mob if no sc
-      //sc light    -- will force closing light based skillchains if available
-      //sc dark     -- will force closing dark based skillchains if available
-      //sc whilecasting -- activates spam command to trigger during casting
-      //sc whilereadies -- activates spam command to trigger during readying
-      //sc chaff    -- BLU: uses Chain Affinity + the set "chainaffws" spell
-                    -- that closes the highest-level skillchain
+Each command turns that element off for autonuke, or back on.
 
-Combination automation commands to provide easier access to common modes
+### In-game macros
 
-      //sc party    -- 'auto' + 'buddy'
-      //sc partymb  -- 'auto' + 'buddy' + 'mb'
-      //sc partyam  -- 'auto' + 'buddy' + 'am'
+```
+/console sc autoskill   -- uses the chosen closer (or the opener)
+/console sc autoburst   -- casts the magic burst for the current chain
+/console sc spamskill   -- uses spamws
+```
 
-In game macro support for activating automation triggers manually
+### Buddy mode across your characters
 
-      /console sc autoskill -- activates the weaponskill to close skillchain
-      /console sc autoburst -- activates the nuke to magic burst skillchain
+When buddy mode is on, each of your characters tells the others when its Aftermath wears off or when a debuff stops it from weapon skilling. The others then skip it until it can go again. This works between characters on the **same PC** through Windower IPC.
 
-Element toggles for autonuke (each toggles that element on/off for every burst)
+---
 
-      //sc fire | ice | wind | earth | thunder | water | lightness | darkness
+## Job configuration
 
-Buddy mode shares Aftermath / WS-disabled status between your own characters on the same PC via Windower IPC.
+Your `<YourCharacter>.lua` defines the following for each job:
+
+| Setting | Used for |
+|---|---|
+| `defaultws` | Opening a new skillchain |
+| `tpws` | Opening when you have more than 2000 TP |
+| `spamws` | Spam mode |
+| `cleavews` | Cleave mode |
+| `starterws` | The first weapon skill of each fight (starter mode) |
+| `preferws` | Preferred closers (prefer / strict modes) |
+| `amws` | Keeping Aftermath Lv.3 up |
+| `chainaffws` | **BLU:** spells to use with Chain Affinity |
+| `petws` | **BST/SMN:** pet skills used to open |
+
+Each list is checked in order, and the first one you can use right now is picked. You can list several weapon skills to cover different weapons.
+
+The bottom of the file also sets `fastcast` (the delay before an autonuke), `bursttime`, `tagdelay` and `nukeswap`, a GearSwap command to send before a magic burst.
+
+---
+
+## Troubleshooting
+
+| Command | Shows |
+|---|---|
+| `//sc chaffdebug` | Chain Affinity recast, and which `chainaffws` spells are set |
+| `//sc chaffcoverage` | Skillchain properties your set Chain Affinity spells cover |
+| `//sc allrecasts` | Every active ability recast ID |
+
+---
+
+## Credits
+
+- **Ivaar**: SkillChains (BSD 3-Clause)
+- **Cypan**: SkillChains Plus automation
+- **Linktri @ Asura**: Chain Affinity, prime weapon skills, EnemyBar2-style display, v3 rewrite
+- Element colours by **Sammeh**
