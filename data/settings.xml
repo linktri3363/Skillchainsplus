@@ -2,13 +2,13 @@
 <settings>
     <global>
         <Show>
-            <burst>BST,GEO,WHM,DRG,NIN,COR,SCH,DRK,DNC,SAM,RDM,RNG,PUP,BLU,RUN,BLM,WAR,THF,SMN,BRD,PLD,MNK</burst>
+            <burst>BST,GEO,WHM,DRG,NIN,COR,BLU,DRK,DNC,BLM,RDM,RNG,PUP,MNK,RUN,SAM,WAR,THF,SMN,BRD,PLD,SCH</burst>
             <pet>BST,SMN</pet>
-            <props>BST,GEO,WHM,DRG,NIN,COR,SCH,DRK,DNC,SAM,RDM,RNG,PUP,BLU,RUN,BLM,WAR,THF,SMN,BRD,PLD,MNK</props>
+            <props>BST,GEO,WHM,DRG,NIN,COR,BLU,DRK,DNC,BLM,RDM,RNG,PUP,MNK,RUN,SAM,WAR,THF,SMN,BRD,PLD,SCH</props>
             <spell>SCH,BLU</spell>
-            <step>BST,GEO,WHM,DRG,NIN,COR,SCH,DRK,DNC,SAM,RDM,RNG,PUP,BLU,RUN,BLM,WAR,THF,SMN,BRD,PLD,MNK</step>
-            <timer>BST,GEO,WHM,DRG,NIN,COR,SCH,DRK,DNC,SAM,RDM,RNG,PUP,BLU,RUN,BLM,WAR,THF,SMN,BRD,PLD,MNK</timer>
-            <weapon>BST,GEO,WHM,DRG,NIN,COR,SCH,DRK,DNC,SAM,RDM,RNG,PUP,BLU,RUN,BLM,WAR,THF,SMN,BRD,PLD,MNK</weapon>
+            <step>BST,GEO,WHM,DRG,NIN,COR,BLU,DRK,DNC,BLM,RDM,RNG,PUP,MNK,RUN,SAM,WAR,THF,SMN,BRD,PLD,SCH</step>
+            <timer>BST,GEO,WHM,DRG,NIN,COR,BLU,DRK,DNC,BLM,RDM,RNG,PUP,MNK,RUN,SAM,WAR,THF,SMN,BRD,PLD,SCH</timer>
+            <weapon>BST,GEO,WHM,DRG,NIN,COR,BLU,DRK,DNC,BLM,RDM,RNG,PUP,MNK,RUN,SAM,WAR,THF,SMN,BRD,PLD,SCH</weapon>
         </Show>
         <UpdateFrequency>0.2</UpdateFrequency>
         <aeonic>false</aeonic>
@@ -52,13 +52,32 @@
                 </stroke>
             </text>
         </display>
+        <modes>
+            <pos>
+                <x>400</x>
+                <y>270</y>
+            </pos>
+            <show>true</show>
+        </modes>
+        <style>
+            <bar_width>220</bar_width>
+            <font>Arial</font>
+            <font_size>10</font_size>
+            <max_rows>8</max_rows>
+        </style>
     </global>
     <linktri>
         <display>
             <pos>
-                <x>1423.4675292969</x>
-                <y>411.37506103516</y>
+                <x>1383.4721679688</x>
+                <y>701.19384765625</y>
             </pos>
         </display>
+        <modes>
+            <pos>
+                <x>1381.4233703613</x>
+                <y>673.59375</y>
+            </pos>
+        </modes>
     </linktri>
 </settings>
