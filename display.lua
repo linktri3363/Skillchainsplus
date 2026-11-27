@@ -135,7 +135,7 @@ function Display:render(view)
     -- Header: Step 2 -> Savage Blade
     if show.step and view.step then
         self.header:text(('%s %s  %s  %s'):format(cs(COL.dim, 'Step'), cs(COL.header, tostring(view.step)),
-            cs(COL.dim, '→'), cs(COL.text, view.name or '')))
+            cs(COL.dim, '>'), cs(COL.text, view.name or '')))
         self.header:pos(x, y)
         self.header:show()
         y = y + self.line_h
@@ -225,7 +225,8 @@ function Display:render_modes(active)
         for i, m in ipairs(active) do parts[i + 1] = cs(COL.mode_on, m) end
     end
     self.modes:text(table.concat(parts, '  '))
-    self.modes:pos(cfg.pos.x, cfg.pos.y)
+    local x, y = self:modes_pos()
+    self.modes:pos(x, y)
     self.modes:show()
 end
 
@@ -250,6 +251,17 @@ function Display:demo()
     self.settings.modes.show = show
 end
 
+-- The mode line sits just above the skillchain display until it is dragged
+-- somewhere else (modes.anchored = false).
+function Display:modes_pos()
+    local cfg = self.settings.modes
+    if cfg.anchored ~= false then
+        local pos = self.settings.display.pos
+        return pos.x, pos.y - self.line_h - 2
+    end
+    return cfg.pos.x, cfg.pos.y
+end
+
 local function group_hover(group, x, y)
     for _, e in ipairs(group) do
         if e:visible() and e:hover(x, y) then return true end
@@ -264,8 +276,17 @@ function Display:hit(x, y)
 end
 
 function Display:move(group, dx, dy)
-    local pos = group == 'modes' and self.settings.modes.pos or self.settings.display.pos
-    pos.x, pos.y = pos.x + dx, pos.y + dy
+    if group == 'modes' then
+        local cfg = self.settings.modes
+        if cfg.anchored ~= false then
+            cfg.pos.x, cfg.pos.y = self:modes_pos()
+            cfg.anchored = false
+        end
+        cfg.pos.x, cfg.pos.y = cfg.pos.x + dx, cfg.pos.y + dy
+    else
+        local pos = self.settings.display.pos
+        pos.x, pos.y = pos.x + dx, pos.y + dy
+    end
     self:demo()
 end
 

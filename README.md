@@ -43,6 +43,7 @@ SC+  AUTO  BUDDY  MB
 |---|---|
 | `//sc move` | Toggles move mode. Drag the display and the mode line, then run `//sc move` again to save |
 | `//sc modes` | Shows or hides the mode line |
+| `//sc modes attach` | Puts the mode line back above the skillchain display (it follows the display until you drag it away) |
 | `//sc font <name>` | Font (default `Arial`) |
 | `//sc size <n>` | Font size (default `10`) |
 | `//sc width <n>` | Timer bar width (default `220`) |

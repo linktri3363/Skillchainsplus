@@ -212,7 +212,7 @@ default.Show = {burst=ALL_JOBS, pet=S{'BST','SMN'}, props=ALL_JOBS, spell=S{'SCH
 default.UpdateFrequency = 0.2
 default.aeonic = false
 default.display = {pos = {x = 400, y = 300}}
-default.modes   = {show = true, pos = {x = 400, y = 270}}
+default.modes   = {show = true, anchored = true, pos = {x = 400, y = 270}}
 default.style   = {font = 'Arial', font_size = 10, bar_width = 220, max_rows = 8}
 
 settings = config.load(default)
@@ -1146,7 +1146,7 @@ end
 
 local HELP = {
     'SkillchainsPlus v' .. _addon.version .. ' - //sc <command>',
-    ' Display: move | modes | font <name> | size <n> | width <n> | save [all]',
+    ' Display: move | modes [attach] | font <name> | size <n> | width <n> | save [all]',
     '          burst | props | step | timer | weapon | spell | pet | aeonic',
     ' Main:    auto | spam | cleave | autonuke | status | reload',
     ' Modify:  mb | am | buddy | prefer | strict | endless | ultimate | open | close',
@@ -1176,10 +1176,17 @@ windower.register_event('addon command', function(cmd, ...)
         set_moving(not moving)
 
     elseif cmd == 'modes' then
-        settings.modes.show = not settings.modes.show
+        if args[1] and args[1]:lower() == 'attach' then
+            settings.modes.anchored = true
+            settings.modes.show = true
+            say('Mode line attached above the skillchain display.')
+        else
+            settings.modes.show = not settings.modes.show
+            say('Mode line ' .. (settings.modes.show and 'shown' or 'hidden'))
+        end
         config.save(settings)
         last_modes = nil
-        say('Mode line ' .. (settings.modes.show and 'shown' or 'hidden'))
+        if moving then Display:demo() end
 
     elseif cmd == 'font' or cmd == 'size' or cmd == 'width' then
         if args[1] then restyle(cmd, table.concat(args, ' ')) else say('Usage: //sc ' .. cmd .. ' <value>') end
